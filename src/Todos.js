@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { addTodo } from "./redux/TodosStore";
+import { addTodo, checkTodo, fetchTodos } from "./redux/TodosStore";
+import nanoid from 'nanoid'
 
 class Todos extends Component {
   state = {
@@ -8,34 +9,47 @@ class Todos extends Component {
     text: ""
   };
 
+  componentDidMount() {
+    this.props.fetchTodos()
+  }
+
   handleInputChange = e => {
-    const {name, value} = e
+    const {name, value} = e.target
     this.setState({
       [name]: value
     })
   }
 
+
   render() {
-    const {todos, addTodo} = this.props
-    return (
-      <div>
-        {Object.keys(
-          this.state).map(i => (
-            <input name={i} key={i} onChange={this.handleInputChange} />
-          ))
-        }
-        <button onClick={() => addTodo({...this.state})}>Add Todo</button>
+    const {todos, addTodo, checkTodo} = this.props
+    const {title, text} = this.state
+    return <div>
+        <input name="title" onChange={this.handleInputChange} />
+        <input name="text" onChange={this.handleInputChange} />
+        <button
+          onClick={() =>
+            addTodo({ title, text, id: nanoid(), checked: false })
+          }
+        >
+          Add Todo
+        </button>
         <br />
         <ul>
           {todos.map(todo => (
-            <li>
-              <strong>{todo.title}</strong>
+            <li
+              key={todo.id}
+              style={{ color: todo.checked ? "black" : "lightblue" }}
+            >
+              <strong style={{cursor: 'pointer'}} onClick={() =>  checkTodo(todo.id)}>
+                {todo.title}
+              </strong>
+              <br />
               <i>{todo.text}</i>
             </li>
           ))}
         </ul>
-      </div>
-    );
+      </div>;
   }
 }
 
@@ -44,7 +58,9 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  addTodo: payload => dispatch(addTodo(payload))
+  addTodo: payload => dispatch(addTodo(payload)),
+  checkTodo: id => dispatch(checkTodo(id)),
+  fetchTodos: () => dispatch(fetchTodos())
 });
 
 export default connect(
